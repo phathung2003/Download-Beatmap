@@ -24,11 +24,11 @@ router.get('/getToken', async (req, res) => {
       body,
     });
 
-    if (!response.ok) {throw new Error('Lấy token thất bại');} //lỗi lấy token
+    if (!response.ok) { throw new Error('Lấy token thất bại'); } //lỗi lấy token
 
     const tokenData = await response.json();
-    res.json({ access_token: tokenData.access_token}); // Trả về Access token
-  } 
+    res.json({ access_token: tokenData.access_token }); // Trả về Access token
+  }
   catch (error) {
     console.error('Error fetching token:', error);
     res.status(500).json({ error: 'Failed to get Access Token' });
@@ -37,9 +37,9 @@ router.get('/getToken', async (req, res) => {
 
 //Header API
 const headers = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'data': "client_id=1&client_secret=clientsecret&grant_type=client_credentials&scope=public"
+  'Accept': 'application/json',
+  'Content-Type': 'application/x-www-form-urlencoded',
+  'data': "client_id=1&client_secret=clientsecret&grant_type=client_credentials&scope=public"
 }
-  
+
 module.exports = router;

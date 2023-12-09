@@ -6,6 +6,7 @@ const router = express.Router();
 
 const songAPI = process.env.SONG_SERVER_API //Server lưu trữ danh sách BeatMapSet
 const osuBeatmapSet = process.env.OSU_BEATMAP_SET  //API Osu lấy dữ liệu set beatmap
+const downloadAPI = process.env.DOWNLOAD_API
 
 //Không paste được token vào URL
 router.post('/list', async (req, res) => {
@@ -13,21 +14,36 @@ router.post('/list', async (req, res) => {
   const tokenString = token.token;
 
   try {
-    const beatmapSetList = await getBeatmapSetList(); //Lấy danh sách BeatMapSet lưu trữ
+    //const beatmapSetList = await getBeatmapSetList(); //Lấy danh sách BeatMapSet lưu trữ
+
+    const beatmapSetList = [{
+      id: 1796612,
+      status: 0,
+    },
+    {
+      id: 1470072,
+      status: 0,
+    },
+    {
+      id: 1034179,
+      status: 0,
+    }]
+
     const beatmapSetInfo = await checkInfo(beatmapSetList, tokenString) //Lấy thông tin cho từng BeatMapSet
     res.json(beatmapSetInfo); // Trả dữ liệu về
-  } 
-  catch (error) {console.error('Error fetching data:', error); res.status(500).json({ error: 'Failed to get beatmap set data' });}
+  }
+  catch (error) { ErrorStatus(error.message, res) }
 });
+
 
 //Nếu paste được token vào URL
 router.get('/list/:IDToken', async (req, res) => {
   try {
-    const beatmapSetList = await getBeatmapSetList(); //Lấy danh sách BeatMapSet lưu trữ
+    const beatmapSetList = await getBeatmapSetList(res); //Lấy danh sách BeatMapSet lưu trữ
     const beatmapSetInfo = await checkInfo(beatmapSetList, req.params.IDToken) //Lấy thông tin cho từng BeatMapSet
     res.json(beatmapSetInfo); // Trả dữ liệu về
-  } 
-  catch (error) {console.error('Error fetching data:', error); res.status(500).json({ error: 'Failed to get beatmap set data' });}
+  }
+  catch (error) { ErrorStatus(error.message, res) }
 });
 
 module.exports = router;
@@ -35,16 +51,15 @@ module.exports = router;
 
 //Lấy danh sách BeatmapSet lưu trữ
 async function getBeatmapSetList() {
+  try {
+    const response = await fetch(songAPI, { method: 'GET' });
 
-  const response = await fetch(songAPI, { method: 'GET' });
-  
-  //Gặp lỗi lấy dữ liệu
-  if (!response.ok) { throw new Error('Lấy dữ liệu thất bại'); }
-  
-  //Đổi dữ liệu qua dạng JSON
-  const beatmapSetList = await response.json();
+    //Đổi dữ liệu qua dạng JSON
+    const beatmapSetList = await response.json();
 
-  return beatmapSetList
+    return beatmapSetList
+  }
+  catch (error) { throw new Error(error.code); }
 }
 
 //Lấy thông tin cho từng BeatmapSet
@@ -54,14 +69,14 @@ async function getBeatmapSetInfo(token, ID) {
   const headers = headersData({ token });
 
   //Lấy dữ liệu từ server Osu
-  const response = await fetch(url, { 
+  const response = await fetch(url, {
     method: "GET",
     headers,
   })
 
   //Đổi dữ liệu qua dạng JSON
   const beatmapSetInfo = await response.json();
-  
+
   return beatmapSetInfo;
 };
 
@@ -85,7 +100,7 @@ async function checkInfo(beatmapSetList, token) {
       };
       return newJSON;
     }
-    catch (error) {console.error("Error fetching data for element:", error); return null;}
+    catch (error) { console.error("Error fetching data for element:", error); return null; }
   });
 
   const results = await Promise.all(promises); //Đợi tất cả phản hồi
@@ -102,3 +117,10 @@ const headersData = ({ token }) => {
   })
 };
 
+
+function ErrorStatus(error, res) {
+  switch (error) {
+    case "ETIMEDOUT": res.status(404).json({ code: 404, error: 'Không kết nối được đến server để lấy set Beatmap' }); break;
+    default: res.status(500).json({ code: 500, error: 'Unknowed Error' }); break;
+  }
+}
