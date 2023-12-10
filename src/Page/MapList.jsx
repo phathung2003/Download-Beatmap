@@ -4,32 +4,35 @@ import '../Resources/CSS/Loading.css'
 import Countdown from 'react-countdown';
 
 //Process
-import DownloadBeatmap from '../Process/DownloadBeatmap'
 import timeFormat from '../Process/Clock/TimeFormat'
 import stopwatchSetting from '../Process/Clock/stopwatchSetting'
+import currentPoint from '../Process/Download/currentPoint';
+import downloadManager from '../Process/Download/DownloadManager';
+import { deleteBeatmapStorage } from '../Process/LocalStorage/BeatmapStorage';
 
 //Components
 import BeatmapList from '../Component/BeatmapList';
-import App from './GET/Token'
+import Token from './GET/Token';
 
 const timeOut = 2000;
 
-export default function SongList(dataList) {
+export default function SongList(data) {
 
-  const [list, setList] = useState(dataList.dataList);
-  const [total, setTotal] = useState(dataList.totalBeatmap)
-  const [current, setCurrent] = useState(0)
+  const [list, setList] = useState(data.beatmapList);
+  const [total, setTotal] = useState(data.beatmapList.length)
+  const [current, setCurrent] = useState(currentPoint(data.beatmapList))
   const [percentage, setPercentage] = useState(total != 0 ? (current / (total - 1) * 100).toFixed(5) : (0).toFixed(5))
   const [inProgress, setInProgress] = useState(false)
-  const [estimateTime, setEstimateTime] = useState(dataList.ETA);
+  const [estimateTime, setEstimateTime] = useState((data.beatmapList.length + 1) * 2000);
   const [overTime, setOvertime] = useState(false)
   const { value } = useTimeModel(stopwatchSetting());
   const [halt, setHalt] = useState(false);
   const [reset, setReset] = useState(true);
+  const [resetData, setResetData] = useState(false);
 
   //Xử lý tải file (Chạy vòng lặp)
   //useEffect(() => { if (inProgress) { setTimeout(() => { Downloading() }, timeOut) } }, [current, total, list, inProgress]);
-  useEffect(() => { if (inProgress) { Downloading(halt, current, total, list, setList, setCurrent, setPercentage, setHalt, stopwatchSetting, setInProgress, reset, setReset) } }, [inProgress, current]);
+  useEffect(() => { if (inProgress) { downloadManager(halt, current, total, list, setList, setCurrent, setPercentage, setHalt, stopwatchSetting, setInProgress, reset, setReset) } }, [inProgress, current]);
 
   //Xử lý đếm giờ
   const countdown = useMemo(() => {
@@ -52,35 +55,8 @@ export default function SongList(dataList) {
     }
   }, [inProgress, estimateTime, setOvertime]);
 
-  return BeatmapList(total, current, percentage, timeOut, overTime, inProgress, setInProgress, value, list, stopwatchSetting())
-}
-
-
-//Xử lý tải file (Hàm xử lý)
-async function Downloading(halt, current, total, list, setList, setCurrent, setPercentage, setHalt, stopwatchSetting, setInProgress, reset, setReset) {
-  if (reset) {
-    stopwatchSetting().reset();
-    setReset(false);
-  }
-
-  if (!halt) {
-    if (current < total) {
-      setHalt(true);
-
-      await DownloadBeatmap(list[current]);
-
-
-      var update = list.map(data => {
-        if (data.id === list[current].id) { return { ...data, status: 1 }; }
-        else return data
-      });
-
-      // Cập nhật state với mảng mới
-      setList(update);
-      setCurrent(current + 1);
-      setPercentage(((current + 1) / total * 100).toFixed(5))
-      setHalt(false);
-    }
-    else { setInProgress(false); stopwatchSetting().stop(); setReset(true) }
+  switch (resetData) {
+    case true: deleteBeatmapStorage(); return <Token message={"cài lại dữ liệu"} />
+    default: return BeatmapList(total, current, percentage, timeOut, overTime, inProgress, setInProgress, value, list, stopwatchSetting(), setResetData)
   }
 }

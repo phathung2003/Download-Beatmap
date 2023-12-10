@@ -1,11 +1,14 @@
+import { useEffect, useState } from 'react';
+
+//Process
 import getSongList from '../../Process/SongList'
+import { setBeatmapStorage, getBeatmapStorage, deleteAllLocalStorage } from '../../Process/LocalStorage/BeatmapStorage';
 
 //Components
 import GetToken from './Token'
 import Loading from '../../Component/Loading';
 import ConnectionFailed from '../../Component/ConnectionFailed'
 import MapList from '../mapList'
-import { useEffect, useState } from 'react';
 
 const timeOut = 2000;
 
@@ -34,7 +37,11 @@ export default function MapData(token) {
   switch (list) {
     case false: return Loading("dữ liệu"); //Đang lấy trang
     case "Connection Failed": return ConnectionFailed(errorCode) //Lỗi lấy dữ liệu
-    default: return (<MapList dataList={list} totalBeatmap={total} ETA={estimateTime} />)
+    default: {
+      deleteAllLocalStorage()
+      setBeatmapStorage(list);
+      getBeatmapStorage();
+      return (<MapList beatmapList={list} />)
+    }
   }
 }
-

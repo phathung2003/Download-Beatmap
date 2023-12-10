@@ -14,20 +14,20 @@ router.post('/list', async (req, res) => {
   const tokenString = token.token;
 
   try {
-    //const beatmapSetList = await getBeatmapSetList(); //Lấy danh sách BeatMapSet lưu trữ
+    const beatmapSetList = await getBeatmapSetList(); //Lấy danh sách BeatMapSet lưu trữ
 
-    const beatmapSetList = [{
-      id: 1796612,
-      status: 0,
-    },
-    {
-      id: 1470072,
-      status: 0,
-    },
-    {
-      id: 1034179,
-      status: 0,
-    }]
+    // const beatmapSetList = [{
+    //   id: 1796612,
+    //   status: 0,
+    // },
+    // {
+    //   id: 1470072,
+    //   status: 0,
+    // },
+    // {
+    //   id: 1034179,
+    //   status: 0,
+    // }]
 
     const beatmapSetInfo = await checkInfo(beatmapSetList, tokenString) //Lấy thông tin cho từng BeatMapSet
     res.json(beatmapSetInfo); // Trả dữ liệu về
@@ -86,7 +86,10 @@ async function checkInfo(beatmapSetList, token) {
   //Duyệt từng set Beatmap để lấy thông tin
   const promises = beatmapSetList.map(async (element) => {
     try {
-      const data = await getBeatmapSetInfo(token, element.id); //Lấy thông tin BeatmapSet từ server 0su
+      const data = await getBeatmapSetInfo(token, element.id); //Lấy thông tin BeatmapSet từ server Osu
+      var cover = null;
+      try { cover = data.covers['cover@2x']; }
+      catch { cover = null }
 
       //Tạo JSON tạm lưu thông tin
       let newJSON = {
@@ -94,8 +97,9 @@ async function checkInfo(beatmapSetList, token) {
         title: data.title,
         artist: data.artist,
         creator: data.creator,
-        cover: data.covers['cover@2x'],
-        // cover: data.covers.cover,
+        // cover: data.covers['cover@2x'],
+        //cover: data.covers.cover,
+        cover: cover,
         status: element.status,
       };
       return newJSON;

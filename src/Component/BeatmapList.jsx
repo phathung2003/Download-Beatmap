@@ -4,7 +4,7 @@ import timeFormat from "../Process/Clock/TimeFormat"
 //Components
 import Card from '../Component/Card';
 
-export default function BeatmapList(total, current, percentage, timeOut, overTime, inProgress, setInProgress, value, list, stopwatchSetting) {
+export default function BeatmapList(total, current, percentage, timeOut, overTime, inProgress, setInProgress, value, list, stopwatchSetting, setResetData) {
   return (
     <div className="relative">
       <div className="sticky top-0 z-50" style={{ backgroundColor: "#242424", color: "white" }}>
@@ -21,6 +21,34 @@ export default function BeatmapList(total, current, percentage, timeOut, overTim
             </div>
           </li>
 
+
+          <li>
+            <div className="flex justify-center mb-2 max-h-48 w-100">
+              <div className="max-w-screen-xl w-full flex justify-between mt-3">
+
+                <div>
+                  <button onClick={(e) => { setResetData(true) }} className="btn btn-danger text-xl font-bold">Cài lại</button>
+                </div>
+
+                <div>
+                  <p></p>
+                  {inProgress == false && percentage < 100 ? <button className="btn btn-danger text-xl font-bold" onClick={(e) => { setInProgress(true); stopwatchSetting.start() }}>Bắt đầu quá trình tải xuống</button> : <div />}
+                </div>
+                <button className="btn btn-danger text-xl font-bold">Tạm dừng</button>
+                <div>
+
+                </div>
+              </div>
+            </div>
+          </li>
+
+
+
+
+
+
+
+
           <li>
             <div className="flex justify-center mb-2 max-h-48 w-100">
               <div className="max-w-screen-xl w-full flex justify-between mt-3">
@@ -32,8 +60,7 @@ export default function BeatmapList(total, current, percentage, timeOut, overTim
 
                 </div>
                 <div>
-                  <p></p>
-                  {inProgress == false && percentage < 100 ? <button className="btn btn-danger text-xl font-bold" onClick={(e) => { setInProgress(true); stopwatchSetting.start() }}>Bắt đầu quá trình tải xuống</button> : <div />}
+
                 </div>
                 <div>{overTime ? countdown : timeFormat(value, "Stopwatch")}</div>
               </div>
